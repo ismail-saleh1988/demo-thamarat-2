@@ -1,0 +1,131 @@
+﻿@model IEnumerable<Thamarat.Domain.Entities.Worker>
+@{
+    ViewData["Title"] = "قائمة العمال";
+}
+
+<h2 class="text-center mt-4">👷‍♂️ قائمة العمال</h2>
+
+<div class="d-flex justify-content-between mb-3">
+    <a class="btn btn-primary" asp-controller="WorkerCycles" asp-action="Index">📆 عرض دورات العمال</a>
+    <a class="btn btn-success" asp-action="Create">➕ إضافة عامل</a>
+    <a class="btn btn-outline-dark" asp-controller="WorkerAdvances" asp-action="Index">💰 السلف</a>
+</div>
+
+<!-- ✅ فلترة التاريخ -->
+<div class="row mb-3">
+    <div class="col-md-3">
+        <label>من تاريخ:</label>
+        <input type="date" id="minDate" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label>إلى تاريخ:</label>
+        <input type="date" id="maxDate" class="form-control" />
+    </div>
+</div>
+
+<table id="workersTable" class="table table-bordered table-striped text-center">
+    <thead class="table-success">
+        <tr>
+            <th>الاسم</th>
+            <th>الأجر اليومي</th>
+            <th>تاريخ البداية</th>
+            <th>إجراءات</th>
+        </tr>
+        <tr>
+            <th><input type="text" placeholder="🔍 ابحث" class="form-control form-control-sm" /></th>
+            <th><input type="text" placeholder="🔍 ابحث" class="form-control form-control-sm" /></th>
+            <th></th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var worker in Model)
+        {
+            <tr>
+                <td>@worker.Name</td>
+                <td>@worker.DailyWage.ToString("N2")</td>
+                <td>@worker.StartDate.ToString("yyyy-MM-dd")</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@worker.Id" class="btn btn-warning btn-sm">✏️ تعديل</a>
+                    <a asp-action="Delete" asp-route-id="@worker.Id" class="btn btn-danger btn-sm">🗑️ حذف</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+    <tfoot>
+        <tr>
+            <th>الإجمالي</th>
+            <th id="sumColumn"></th>
+            <th colspan="2"></th>
+        </tr>
+    </tfoot>
+</table>
+
+@section Scripts {
+    <!-- ✅ ملفات DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // ✅ فلترة بالتاريخ
+            $.fn.dataTable.ext.search.push(
+                function (settings, data, dataIndex) {
+                    var min = $('#minDate').val();
+                    var max = $('#maxDate').val();
+                    var date = data[2]; // تاريخ البداية
+                    if ((min === "" && max === "") ||
+                        (min === "" && date <= max) ||
+                        (min <= date && max === "") ||
+                        (min <= date && date <= max)) {
+                        return true;
+                    }
+                    return false;
+                }
+            );
+
+            var table = $('#workersTable').DataTable({
+                dom: 'Bfrtip',
+                buttons: [
+                    { extend: 'copyHtml5', text: '📋 نسخ', className: 'btn btn-info' },
+                    { extend: 'print', text: '🖨️ طباعة', className: 'btn btn-secondary' },
+                    { extend: 'excelHtml5', text: '📊 Excel', className: 'btn btn-success' }
+                ],
+                orderCellsTop: true,
+                fixedHeader: true,
+                language: {
+                    url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/ar.json"
+                },
+                footerCallback: function (row, data, start, end, display) {
+                    var api = this.api();
+                    var total = api
+                        .column(1, { search: 'applied' })
+                        .data()
+                        .reduce(function (a, b) {
+                            var x = parseFloat(a.toString().replace(/,/g, '')) || 0;
+                            var y = parseFloat(b.toString().replace(/,/g, '')) || 0;
+                            return x + y;
+                        }, 0);
+                    $(api.column(1).footer()).html(total.toLocaleString(undefined, { minimumFractionDigits: 2 }) + " جنيه");
+                }
+            });
+
+            // ✅ بحث الأعمدة
+            $('#workersTable thead tr:eq(1) th').each(function (i) {
+                $('input', this).on('keyup change', function () {
+                    table.column(i).search(this.value).draw();
+                });
+            });
+
+            $('#minDate, #maxDate').on('change', function () {
+                table.draw();
+            });
+        });
+    </script>
+}

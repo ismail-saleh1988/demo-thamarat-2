@@ -1,0 +1,81 @@
+﻿@model IEnumerable<Thamarat.Domain.Entities.WorkerCycle>
+
+@{
+    ViewData["Title"] = "الدورات النشطة";
+}
+
+<h2 class="text-center mt-4">📆 الدورات الحالية للعمال</h2>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mt-2">📆 دورات عمل العمال</h4>
+    <div>
+        <a asp-action="Create" class="btn btn-primary me-2">➕ بدء دورة جديدة</a>
+        <a asp-controller="WorkerSalaryPayments" asp-action="Index" class="btn btn-outline-success me-2">💸 الرواتب</a>
+        <a asp-controller="WorkerAdvances" asp-action="Index" class="btn btn-outline-info">💰 السلف</a>
+    </div>
+</div>
+
+<table id="cyclesTable" class="table table-bordered table-striped text-center">
+    <thead class="table-success">
+        <tr>
+            <th>العامل</th>
+            <th>تاريخ البداية</th>
+            <th>إجراءات</th>
+        </tr>
+        <tr>
+            <th><input type="text" class="form-control form-control-sm" placeholder="🔍" /></th>
+            <th></th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var cycle in Model)
+        {
+            <tr>
+                <td>@cycle.Worker?.Name</td>
+                <td>@cycle.StartDate.ToString("yyyy-MM-dd")</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@cycle.Id" class="btn btn-sm btn-warning">✏️ تعديل</a>
+                    <a asp-action="Delete" asp-route-id="@cycle.Id" class="btn btn-sm btn-danger">🗑️ حذف</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <!-- ✅ ملفات DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            var table = $('#cyclesTable').DataTable({
+                dom: 'Bfrtip',
+                buttons: [
+                    { extend: 'copyHtml5', text: '📋 نسخ', className: 'btn btn-info' },
+                    { extend: 'print', text: '🖨️ طباعة', className: 'btn btn-secondary' },
+                    { extend: 'excelHtml5', text: '📊 Excel', className: 'btn btn-success' }
+                ],
+                orderCellsTop: true,
+                fixedHeader: true,
+                language: {
+                    url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/ar.json"
+                }
+            });
+
+            // ✅ تفعيل البحث في الأعمدة
+            $('#cyclesTable thead tr:eq(1) th').each(function (i) {
+                $('input', this).on('keyup change', function () {
+                    table.column(i).search(this.value).draw();
+                });
+            });
+        });
+    </script>
+}

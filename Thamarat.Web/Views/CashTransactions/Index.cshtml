@@ -1,0 +1,155 @@
+﻿@model IEnumerable<Thamarat.Domain.Entities.CashTransaction>
+@{
+    ViewData["Title"] = "سجل حركات النقد";
+    var summary = ViewBag.Summary;
+}
+
+<h2 class="text-center mt-4">📒 سجل حركات النقد</h2>
+
+<!-- ✅ ملخص الحسابات -->
+<div class="mb-4">
+    <h4>📊 صافي كل حساب:</h4>
+    <table class="table table-bordered text-center table-sm">
+        <thead class="table-secondary">
+            <tr>
+                <th>الحساب</th>
+                <th>إجمالي الداخل</th>
+                <th>إجمالي الخارج</th>
+                <th>الصافي</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in summary)
+            {
+                <tr>
+                    <td>@item.CashAccount</td>
+                    <td>@item.In.ToString("N2") جنيه</td>
+                    <td>@item.Out.ToString("N2") جنيه</td>
+                    <td><strong>@item.Net.ToString("N2") جنيه</strong></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- ✅ فلاتر التاريخ -->
+<div class="row mb-3">
+    <div class="col-md-3">
+        <label>من تاريخ:</label>
+        <input type="date" id="minDate" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label>إلى تاريخ:</label>
+        <input type="date" id="maxDate" class="form-control" />
+    </div>
+</div>
+
+<!-- ✅ جدول الداتا تابل -->
+<table id="transactionsTable" class="table table-bordered table-striped text-center">
+    <thead class="table-success">
+        <tr>
+            <th>التاريخ</th>
+            <th>الوصف</th>
+            <th>المبلغ</th>
+            <th>النوع</th>
+            <th>الحساب</th>
+        </tr>
+        <tr>
+            <th></th>
+            <th><input type="text" placeholder="ابحث" class="form-control form-control-sm" /></th>
+            <th><input type="text" placeholder="ابحث" class="form-control form-control-sm" /></th>
+            <th><input type="text" placeholder="ابحث" class="form-control form-control-sm" /></th>
+            <th><input type="text" placeholder="ابحث" class="form-control form-control-sm" /></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var t in Model)
+        {
+            <tr>
+                <td>@t.Date.ToString("yyyy-MM-dd")</td>
+                <td>@t.Description</td>
+                <td>@t.Amount.ToString("N2")</td>
+                <td>@(t.Type == "In" ? "داخل" : "خارج")</td>
+                <td>@t.CashAccount?.Name</td>
+            </tr>
+        }
+    </tbody>
+    <tfoot>
+        <tr>
+            <th>الإجمالي</th>
+            <th></th>
+            <th id="sumColumn"></th>
+            <th colspan="2"></th>
+        </tr>
+    </tfoot>
+</table>
+
+<!-- ✅ سكريبت DataTables -->
+@section Scripts {
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // ✅ فلترة حسب التاريخ
+            $.fn.dataTable.ext.search.push(
+                function (settings, data, dataIndex) {
+                    var min = $('#minDate').val();
+                    var max = $('#maxDate').val();
+                    var date = data[0]; // التاريخ في العمود الأول
+                    if ((min === "" && max === "") ||
+                        (min === "" && date <= max) ||
+                        (min <= date && max === "") ||
+                        (min <= date && date <= max)) {
+                        return true;
+                    }
+                    return false;
+                }
+            );
+
+            var table = $('#transactionsTable').DataTable({
+                dom: 'Bfrtip',
+                buttons: [
+                    { extend: 'copyHtml5', text: '📋 نسخ', className: 'btn btn-info' },
+                    { extend: 'print', text: '🖨️ طباعة', className: 'btn btn-secondary' },
+                    { extend: 'excelHtml5', text: '📊 Excel', className: 'btn btn-success' }
+                ],
+                orderCellsTop: true,
+                fixedHeader: true,
+                language: {
+                    url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/ar.json"
+                },
+                footerCallback: function (row, data, start, end, display) {
+                    var api = this.api();
+                    var total = api
+                        .column(2, { search: 'applied' }) // المبلغ
+                        .data()
+                        .reduce(function (a, b) {
+                            var x = parseFloat(a.toString().replace(/,/g, '')) || 0;
+                            var y = parseFloat(b.toString().replace(/,/g, '')) || 0;
+                            return x + y;
+                        }, 0);
+                    $(api.column(2).footer()).html(total.toLocaleString(undefined, { minimumFractionDigits: 2 }) + " جنيه");
+                }
+            });
+
+            // ✅ فلترة الأعمدة
+            $('#transactionsTable thead tr:eq(1) th').each(function (i) {
+                $('input', this).on('keyup change', function () {
+                    table.column(i).search(this.value).draw();
+                });
+            });
+
+            // ✅ إعادة تصفية عند تغيير التاريخ
+            $('#minDate, #maxDate').on('change', function () {
+                table.draw();
+            });
+        });
+    </script>
+}

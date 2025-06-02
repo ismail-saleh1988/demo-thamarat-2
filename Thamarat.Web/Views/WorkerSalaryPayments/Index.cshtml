@@ -1,0 +1,151 @@
+﻿@model IEnumerable<Thamarat.Domain.Entities.WorkerSalaryPayment>
+
+@{
+    ViewData["Title"] = "سجلات الرواتب";
+}
+
+<h2 class="text-center mt-4">💼 سجلات الرواتب</h2>
+
+<a asp-action="Create" class="btn btn-primary mb-3">➕ دفع راتب جديد</a>
+
+<!-- ✅ فلاتر التاريخ -->
+<div class="row mb-3">
+    <div class="col-md-3">
+        <label>من تاريخ:</label>
+        <input type="date" id="minDate" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label>إلى تاريخ:</label>
+        <input type="date" id="maxDate" class="form-control" />
+    </div>
+</div>
+
+<table id="salariesTable" class="table table-bordered table-striped text-center">
+    <thead class="table-success">
+        <tr>
+            <th>العامل</th>
+            <th>من تاريخ</th>
+            <th>إلى تاريخ</th>
+            <th>الأيام</th>
+            <th>المرتب</th>
+            <th>السلف</th>
+            <th>الصافي</th>
+            <th>المدفوع</th>
+            <th>التاريخ</th>
+        </tr>
+        <tr>
+            <th><input type="text" class="form-control form-control-sm" placeholder="🔍" /></th>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th><input type="text" class="form-control form-control-sm" placeholder="🔍" /></th>
+            <th><input type="text" class="form-control form-control-sm" placeholder="🔍" /></th>
+            <th><input type="text" class="form-control form-control-sm" placeholder="🔍" /></th>
+            <th><input type="text" class="form-control form-control-sm" placeholder="🔍" /></th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Worker?.Name</td>
+                <td>@item.FromDate.ToString("yyyy-MM-dd")</td>
+                <td>@item.ToDate.ToString("yyyy-MM-dd")</td>
+                <td>@item.DaysWorked</td>
+                <td>@item.TotalSalary.ToString("N2")</td>
+                <td>@item.TotalAdvance.ToString("N2")</td>
+                <td>@item.NetPay.ToString("N2")</td>
+                <td>@item.PaidAmount.ToString("N2")</td>
+                <td>@item.PaymentDate.ToString("yyyy-MM-dd")</td>
+            </tr>
+        }
+    </tbody>
+    <tfoot>
+        <tr>
+            <th>الإجمالي</th>
+            <th colspan="2"></th>
+            <th></th>
+            <th id="totalSalaryFooter"></th>
+            <th id="totalAdvanceFooter"></th>
+            <th id="totalNetFooter"></th>
+            <th id="totalPaidFooter"></th>
+            <th></th>
+        </tr>
+    </tfoot>
+</table>
+
+@section Scripts {
+    <!-- ✅ ملفات DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // ✅ فلترة بالتاريخ (تاريخ الدفع)
+            $.fn.dataTable.ext.search.push(
+                function (settings, data, dataIndex) {
+                    var min = $('#minDate').val();
+                    var max = $('#maxDate').val();
+                    var date = data[8]; // عمود التاريخ
+                    if ((min === "" && max === "") ||
+                        (min === "" && date <= max) ||
+                        (min <= date && max === "") ||
+                        (min <= date && date <= max)) {
+                        return true;
+                    }
+                    return false;
+                }
+            );
+
+            var table = $('#salariesTable').DataTable({
+                dom: 'Bfrtip',
+                buttons: [
+                    { extend: 'copyHtml5', text: '📋 نسخ', className: 'btn btn-info' },
+                    { extend: 'print', text: '🖨️ طباعة', className: 'btn btn-secondary' },
+                    { extend: 'excelHtml5', text: '📊 Excel', className: 'btn btn-success' }
+                ],
+                orderCellsTop: true,
+                fixedHeader: true,
+                language: {
+                    url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/ar.json"
+                },
+                footerCallback: function (row, data, start, end, display) {
+                    var api = this.api();
+
+                    // Helper لحساب الإجماليات
+                    function sumColumn(index) {
+                        return api.column(index, { search: 'applied' }).data()
+                            .reduce(function (a, b) {
+                                var x = parseFloat(a.toString().replace(/,/g, '')) || 0;
+                                var y = parseFloat(b.toString().replace(/,/g, '')) || 0;
+                                return x + y;
+                            }, 0).toLocaleString(undefined, { minimumFractionDigits: 2 });
+                    }
+
+                    $('#totalSalaryFooter').html(sumColumn(4) + " جنيه");
+                    $('#totalAdvanceFooter').html(sumColumn(5) + " جنيه");
+                    $('#totalNetFooter').html(sumColumn(6) + " جنيه");
+                    $('#totalPaidFooter').html(sumColumn(7) + " جنيه");
+                }
+            });
+
+            // ✅ فلترة الأعمدة
+            $('#salariesTable thead tr:eq(1) th').each(function (i) {
+                $('input', this).on('keyup change', function () {
+                    table.column(i).search(this.value).draw();
+                });
+            });
+
+            $('#minDate, #maxDate').on('change', function () {
+                table.draw();
+            });
+        });
+    </script>
+}

@@ -1,0 +1,30 @@
+﻿@model IEnumerable<Thamarat.Domain.Entities.Shareholder>
+
+<h2 class="text-center mt-4">👥 قائمة المساهمين</h2>
+<a class="btn btn-primary mb-3" asp-action="Create">➕ إضافة مساهم</a>
+
+<table class="table table-bordered table-striped text-center">
+    <thead class="table-success">
+        <tr>
+            <th>الاسم</th>
+            <th>إجمالي ما دفعه</th>
+            <th>نسبة المساهمة</th>
+            <th>إجراءات</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            var total = item.Revenues?.Sum(r => r.Amount) ?? 0;
+            <tr>
+                <td>@item.Name</td>
+                <td>@total.ToString("N2") جنيه</td>
+                <td>@item.Percentage %</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">✏️ تعديل</a>
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">🗑️ حذف</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

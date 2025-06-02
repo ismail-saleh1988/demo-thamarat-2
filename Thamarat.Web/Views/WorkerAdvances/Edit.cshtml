@@ -1,0 +1,42 @@
+﻿@model Thamarat.Domain.Entities.WorkerAdvance
+
+<h2 class="text-center mt-4">✏️ تعديل السلفة</h2>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="form-group mb-3">
+        <label asp-for="WorkerId">العامل</label>
+        <select asp-for="WorkerId" class="form-control" asp-items="ViewBag.Workers">
+            <option value="">-- اختر عامل --</option>
+        </select>
+        <span asp-validation-for="WorkerId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="CashAccountId">من الحساب</label>
+        <select asp-for="CashAccountId" class="form-control" asp-items="ViewBag.CashAccounts">
+            <option value="">-- اختر الحساب --</option>
+        </select>
+        <span asp-validation-for="CashAccountId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="Date">التاريخ</label>
+        <input asp-for="Date" type="date" class="form-control" />
+        <span asp-validation-for="Date" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-4">
+        <label asp-for="Amount">المبلغ</label>
+        <input asp-for="Amount" class="form-control" />
+        <span asp-validation-for="Amount" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-success">💾 حفظ التعديلات</button>
+    <a asp-action="Index" class="btn btn-secondary">↩️ رجوع</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

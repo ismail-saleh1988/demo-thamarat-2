@@ -1,0 +1,29 @@
+﻿@model IEnumerable<Thamarat.Domain.Entities.CashAccount>
+@{
+    ViewData["Title"] = "الحسابات النقدية";
+}
+
+<h2 class="text-center mt-4">📦 قائمة الحسابات النقدية</h2>
+
+<a class="btn btn-primary mb-3" asp-action="Create">➕ إضافة حساب</a>
+
+<table class="table table-bordered table-striped text-center">
+    <thead class="table-success">
+        <tr>
+            <th>الاسم</th>
+            <th>إجراءات</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-warning btn-sm">✏️ تعديل</a>
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm">🗑️ حذف</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,67 @@
+﻿@model Thamarat.Domain.Entities.WorkerSalaryPayment
+
+@{
+    ViewData["Title"] = "دفع راتب العامل";
+}
+
+<h2 class="text-center mt-4">💵 @ViewData["Title"]</h2>
+
+<form asp-action="Create" method="post" id="salaryForm">
+    <div class="form-group mb-3">
+        <label>العامل</label>
+        <select id="WorkerId" asp-for="WorkerId" class="form-control" asp-items="ViewBag.Workers">
+            <option value="">-- اختر العامل --</option>
+        </select>
+    </div>
+
+    <div class="form-group mb-3">
+        <label>إلى تاريخ (نهاية الدورة)</label>
+        <input id="ToDate" asp-for="ToDate" type="date" class="form-control" />
+    </div>
+
+    <button type="button" class="btn btn-info mb-3" onclick="calculateSalary()">🧮 احسب الراتب</button>
+
+    <div id="salaryResult" class="alert alert-secondary d-none">
+        <strong>الصافي المستحق:</strong> <span id="netSalary">0</span> جنيه
+    </div>
+
+    <div class="form-group mb-3">
+        <label>الحساب النقدي</label>
+        <select asp-for="CashAccountId" class="form-control" asp-items="ViewBag.CashAccounts">
+            <option value="">-- اختر الحساب --</option>
+        </select>
+    </div>
+
+    <div class="form-group mb-3">
+        <label>المبلغ المدفوع فعليًا</label>
+        <input asp-for="PaidAmount" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-success">💾 دفع الراتب</button>
+    <a asp-action="Index" class="btn btn-secondary">↩️ رجوع</a>
+</form>
+
+@section Scripts {
+    <script>
+        function calculateSalary() {
+            const workerId = document.getElementById("WorkerId").value;
+            const toDate = document.getElementById("ToDate").value;
+
+            if (!workerId || !toDate) {
+                alert("يرجى اختيار العامل وإدخال تاريخ النهاية");
+                return;
+            }
+
+            fetch(`/WorkerSalaryPayments/CalculateSalary?workerId=${workerId}&toDate=${toDate}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("salaryResult").classList.remove("d-none");
+                    document.getElementById("netSalary").innerText = data.netPay.toLocaleString();
+                })
+                .catch(err => {
+                    alert("حدث خطأ أثناء حساب الراتب");
+                    console.error(err);
+                });
+        }
+    </script>
+}

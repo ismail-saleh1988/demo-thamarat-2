@@ -1,0 +1,136 @@
+﻿@model IEnumerable<Thamarat.Domain.Entities.Expense>
+
+@{
+    ViewData["Title"] = "قائمة المصروفات";
+}
+
+<h2 class="text-center mt-4">💸 قائمة المصروفات</h2>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <a class="btn btn-primary" asp-action="Create">➕ إضافة مصروف</a>
+    <h5>إجمالي المصروفات: <strong id="totalAmount">@ViewBag.TotalExpenses.ToString("N2") جنيه</strong></h5>
+</div>
+
+<!-- ✅ فلاتر التاريخ -->
+<div class="row mb-3">
+    <div class="col-md-3">
+        <label>من تاريخ:</label>
+        <input type="date" id="minDate" class="form-control" />
+    </div>
+    <div class="col-md-3">
+        <label>إلى تاريخ:</label>
+        <input type="date" id="maxDate" class="form-control" />
+    </div>
+</div>
+
+<!-- ✅ جدول المصروفات -->
+<table id="expensesTable" class="table table-bordered table-striped text-center">
+    <thead style="background-color: lightcyan; color:black;">
+        <tr>
+            <th>الوصف</th>
+            <th>المبلغ</th>
+            <th>التاريخ</th>
+            <th>الحساب</th>
+            <th>إجراءات</th>
+        </tr>
+        <tr>
+            <th><input type="text" placeholder="ابحث" class="form-control form-control-sm" /></th>
+            <th><input type="text" placeholder="ابحث" class="form-control form-control-sm" /></th>
+            <th></th>
+            <th><input type="text" placeholder="ابحث" class="form-control form-control-sm" /></th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var e in Model)
+        {
+            <tr>
+                <td>@e.Description</td>
+                <td>@e.Amount.ToString("N2")</td>
+                <td>@e.Date.ToString("yyyy-MM-dd")</td>
+                <td>@e.CashAccount?.Name</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@e.Id" class="btn btn-sm btn-warning">✏️ تعديل</a>
+                    <a asp-action="Delete" asp-route-id="@e.Id" class="btn btn-sm btn-danger">🗑️ حذف</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+    <tfoot>
+        <tr>
+            <th>الإجمالي</th>
+            <th id="sumColumn"></th>
+            <th colspan="3"></th>
+        </tr>
+    </tfoot>
+</table>
+
+@section Scripts {
+    <!-- ✅ ملفات DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // ✅ فلترة حسب التاريخ
+            $.fn.dataTable.ext.search.push(
+                function (settings, data, dataIndex) {
+                    var min = $('#minDate').val();
+                    var max = $('#maxDate').val();
+                    var date = data[2];
+                    if ((min === "" && max === "") ||
+                        (min === "" && date <= max) ||
+                        (min <= date && max === "") ||
+                        (min <= date && date <= max)) {
+                        return true;
+                    }
+                    return false;
+                }
+            );
+
+            var table = $('#expensesTable').DataTable({
+                dom: 'Bfrtip',
+                buttons: [
+                    { extend: 'copyHtml5', text: '📋 نسخ', className: 'btn btn-info' },
+                    { extend: 'print', text: '🖨️ طباعة', className: 'btn btn-secondary' },
+                    { extend: 'excelHtml5', text: '📊 Excel', className: 'btn btn-success' }
+                ],
+                orderCellsTop: true,
+                fixedHeader: true,
+                language: {
+                    url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/ar.json"
+                },
+                footerCallback: function (row, data, start, end, display) {
+                    var api = this.api();
+                    var total = api
+                        .column(1, { search: 'applied' })
+                        .data()
+                        .reduce(function (a, b) {
+                            var x = parseFloat(a.toString().replace(/,/g, '')) || 0;
+                            var y = parseFloat(b.toString().replace(/,/g, '')) || 0;
+                            return x + y;
+                        }, 0);
+                    $(api.column(1).footer()).html(total.toLocaleString(undefined, { minimumFractionDigits: 2 }) + " جنيه");
+                }
+            });
+
+            // ✅ فلترة الأعمدة
+            $('#expensesTable thead tr:eq(1) th').each(function (i) {
+                $('input', this).on('keyup change', function () {
+                    table.column(i).search(this.value).draw();
+                });
+            });
+
+            // ✅ إعادة تصفية الجدول عند تغيير التاريخ
+            $('#minDate, #maxDate').on('change', function () {
+                table.draw();
+            });
+        });
+    </script>
+}

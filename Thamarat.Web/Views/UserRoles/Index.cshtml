@@ -1,0 +1,24 @@
+﻿@model List<Thamarat.Web.ViewModels.UserRolesViewModel>
+
+<h2>إدارة المستخدمين</h2>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>البريد الإلكتروني</th>
+            <th>الأدوار</th>
+            <th>إدارة</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.Email</td>
+                <td>@string.Join(", ", user.Roles)</td>
+                <td>
+                    <a class="btn btn-sm btn-primary" asp-action="Manage" asp-route-userId="@user.UserId">تعديل الأدوار</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

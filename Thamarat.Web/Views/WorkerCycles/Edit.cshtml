@@ -1,0 +1,28 @@
+﻿@model Thamarat.Domain.Entities.WorkerCycle
+
+<h2 class="text-center mt-4">✏️ تعديل دورة العامل</h2>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="form-group mb-3">
+        <label asp-for="WorkerId">اسم العامل</label>
+        <select asp-for="WorkerId" class="form-control" asp-items="ViewBag.Workers">
+            <option value="">-- اختر عامل --</option>
+        </select>
+        <span asp-validation-for="WorkerId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="StartDate">تاريخ البداية</label>
+        <input asp-for="StartDate" type="date" class="form-control" />
+        <span asp-validation-for="StartDate" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-success">💾 حفظ التعديلات</button>
+    <a asp-action="Index" class="btn btn-secondary">↩️ رجوع</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

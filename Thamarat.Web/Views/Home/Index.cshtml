@@ -1,0 +1,108 @@
+﻿@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+
+@{
+    ViewData["Title"] = Localizer["HomeTitle"];
+}
+
+<div class="container-fluid">
+    <div class="row no-gutters">
+
+        <!-- 🟦 التلتين: الكروت + الباراجراف -->
+        <div class="col-md-8 p-4">
+            <div class="row text-center">
+
+                <!-- ✅ الباراجراف الدعائي -->
+                <div class="col-12 mb-4">
+                    <div class="bg-indigo-500 text-black p-3 rounded" style="font-size: 1.5rem; font-weight: bold;">
+                        @Localizer["DashboardMsg"]
+                    </div>
+                </div>
+
+                <!-- ✅ الدوائر -->
+                <div class="col-md-6 mb-4">
+                    <div class="bg-primary text-white rounded-circle d-flex flex-column justify-content-center align-items-center mx-auto shadow" style="width: 180px; height: 180px;">
+                        <div style="font-size: 2rem;">📈</div>
+                        <h5 class="mt-2">@Localizer["TotalRevenue"]</h5>
+                        <h4>@ViewBag.TotalRevenue.ToString("N2")</h4>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="bg-danger text-white rounded-circle d-flex flex-column justify-content-center align-items-center mx-auto shadow" style="width: 180px; height: 180px;">
+                        <div style="font-size: 2rem;">💸</div>
+                        <h5 class="mt-2">@Localizer["TotalExpense"]</h5>
+                        <h4>@ViewBag.TotalExpense.ToString("N2")</h4>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="bg-info text-white rounded-circle d-flex flex-column justify-content-center align-items-center mx-auto shadow" style="width: 180px; height: 180px;">
+                        <div style="font-size: 2rem;">👷‍♂️</div>
+                        <h5 class="mt-2">@Localizer["TotalWorkers"]</h5>
+                        <h4>@ViewBag.TotalWorkers</h4>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="bg-warning text-dark rounded-circle d-flex flex-column justify-content-center align-items-center mx-auto shadow" style="width: 180px; height: 180px;">
+                        <div style="font-size: 2rem;">💰</div>
+                        <h5 class="mt-2">@Localizer["Profit"]</h5>
+                        <h4>@ViewBag.Profit.ToString("N2")</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 🟩 التلت الأيمن: اللوجو + الصور -->
+        <div class="col-md-4 bg-light p-3 d-flex flex-column" style="height: 80vh;">
+            <div class="w-100 text-center mb-3" style="max-height: 200px;">
+                <img src="~/images/Logo.png" alt="Logo" class="img-fluid" style="max-height: 100%;" />
+            </div>
+
+            <div class="slideshow w-100 flex-grow-1 mt-3">
+                <img src="~/images/1.jpeg" class="slideshow-image active" />
+                <img src="~/images/2.jpeg" class="slideshow-image" />
+                <img src="~/images/3.jpeg" class="slideshow-image" />
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 🔁 سلايدر الصور -->
+<style>
+    .slideshow-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 10px;
+        position: absolute;
+        top: 0;
+        left: 0;
+        opacity: 0;
+        transition: opacity 1s ease-in-out;
+    }
+
+    .slideshow {
+        position: relative;
+        overflow: hidden;
+        border-radius: 10px;
+        height: 250px;
+    }
+
+    .slideshow-image.active {
+        opacity: 1;
+    }
+</style>
+
+<script>
+    let currentIndex = 0;
+    const slides = document.querySelectorAll(".slideshow-image");
+
+    setInterval(() => {
+        slides[currentIndex].classList.remove("active");
+        currentIndex = (currentIndex + 1) % slides.length;
+        slides[currentIndex].classList.add("active");
+    }, 3000);
+</script>
