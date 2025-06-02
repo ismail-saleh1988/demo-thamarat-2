@@ -1,29 +1,20 @@
-## Visual Studio
+# Visual Studio
 .vs/
 *.user
 *.suo
 
-## Build results
+# Build results
 bin/
 obj/
+publish/
 
-## NuGet
+# NuGet
 *.nupkg
-packages/
 *.snupkg
+packages/
 
-
-
-
-
-## Rider
-.idea/
-
-
-
-## Logs
+# Logs
 *.log
 
-## User-specific files
-*.userosscache
-*.sln.docstates
+# Rider
+.idea/
